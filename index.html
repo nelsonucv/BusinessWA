@@ -160,9 +160,59 @@
             height: 100vh;
         }
 
-        .header {
-            height: 70px;
-            background: var(--white);
+        /* --- HEADER REDESIGN --- */
+        .dashboard-header {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            z-index: 100;
+        }
+
+        /* Top Bar (Dark) */
+        .header-top {
+            height: 40px;
+            background-color: #1a1a1a;
+            /* Dark background */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            color: #ccc;
+            font-size: 0.8rem;
+        }
+
+        .header-logo-top {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .header-nav a {
+            color: #ccc;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-weight: 600;
+            font-size: 0.75rem;
+            transition: color 0.2s;
+        }
+
+        .header-nav a:hover,
+        .header-nav a.active {
+            color: white;
+        }
+
+        /* Bottom Bar (Light - Action Bar) */
+        .header-bottom {
+            height: 60px;
+            background-color: var(--white);
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
@@ -171,58 +221,66 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
+        .address-display {
+            font-size: 1.1rem;
+            font-weight: 600;
             color: var(--text-dark);
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .search-bar {
-            flex: 1;
-            max-width: 500px;
-            margin: 0 2rem;
+        .address-label {
+            font-weight: 400;
+            color: var(--text-light);
+            font-size: 0.9rem;
         }
 
-        .controls {
+        .action-controls {
             display: flex;
-            gap: 1rem;
             align-items: center;
+            gap: 0.5rem;
         }
 
-        .btn-action {
-            background: var(--primary-color);
+        /* Search Input in Header */
+        .header-search-container {
+            width: 300px;
+            margin-right: 1rem;
+        }
+
+        .header-search-container .mapboxgl-ctrl-geocoder {
+            min-width: 100%;
+            width: 100%;
+            box-shadow: none;
+            border: 1px solid var(--border);
+            height: 36px;
+        }
+
+        .header-search-container .mapboxgl-ctrl-geocoder--input {
+            height: 36px;
+            padding: 6px 35px;
+        }
+
+        .header-search-container .mapboxgl-ctrl-geocoder--icon {
+            top: 8px;
+        }
+
+        /* Action Buttons */
+        .btn-purple {
+            background-color: var(--accent-color);
+            /* Purple */
             color: white;
             border: none;
-            padding: 0.6rem 1.2rem;
+            padding: 0.5rem 1rem;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 600;
-            font-family: var(--font-main);
+            font-size: 0.9rem;
             transition: background 0.2s;
         }
 
-        .btn-action:hover {
-            background: #1e4d85;
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
-            padding: 0.5rem 1.1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-family: var(--font-main);
-            transition: all 0.2s;
-        }
-
-        .btn-outline:hover {
-            background: var(--primary-color);
-            color: white;
+        .btn-purple:hover {
+            background-color: #553c75;
         }
 
         /* Map Area */
@@ -461,6 +519,116 @@
             justify-content: center;
             color: var(--primary-color);
         }
+
+        /* --- COMPARE MODE STYLES --- */
+        #compare-container {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--light-bg);
+        }
+
+        .compare-header {
+            height: 60px;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .split-maps {
+            display: flex;
+            height: 45vh;
+            width: 100%;
+            background: #e0e0e0;
+        }
+
+        .map-wrapper {
+            flex: 1;
+            position: relative;
+            border-right: 1px solid var(--white);
+        }
+
+        .map-wrapper:last-child {
+            border-right: none;
+        }
+
+        .map-label {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-weight: 700;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #map-a,
+        #map-b {
+            width: 100%;
+            height: 100%;
+        }
+
+        .compare-matrix {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .matrix-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            color: var(--text-light);
+            text-transform: uppercase;
+        }
+
+        .matrix-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            align-items: center;
+            background: var(--white);
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .matrix-val {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .matrix-label {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .better-icon {
+            color: #F4A739;
+            /* Gold trophy */
+            margin-left: 0.5rem;
+        }
     </style>
 </head>
 
@@ -529,6 +697,15 @@
                 </svg>
                 <span>Business<strong>WA</strong></span>
             </div>
+
+            <div class="compare-controls" style="display:flex; align-items:center; gap:1rem;">
+                <span style="font-size:0.9rem; font-weight:600; color:var(--text-light);">Isochrone: <span
+                        id="compare-slider-val" style="color:var(--primary-color);">10 min</span></span>
+                <input type="range" id="compare-time-slider" min="0" max="3" step="1" value="3"
+                    oninput="updateCompareSliderLabel()" onchange="refreshCompareIsochrones()"
+                    style="accent-color:var(--primary-color);">
+            </div>
+
             <button class="btn-outline" onclick="exitCompareMode()">Exit Comparison</button>
         </div>
 
@@ -557,19 +734,41 @@
 
     <!-- DASHBOARD (Wrapped in container) -->
     <div id="dashboard-container">
-        <!-- Search -->
-        <div class="search-section">
-            <div class="address-label">Analysis: <span id="current-address"
-                    style="color:var(--text-light); font-weight:400;">Perth, WA</span></div>
-            <div class="search-input-container" id="geocoder-container"></div>
+        <!-- Header Redesign -->
+        <div class="dashboard-header">
+            <!-- Top Bar -->
+            <div class="header-top">
+                <div class="header-logo-top">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span>BusinessWA</span>
+                </div>
+                <nav class="header-nav">
+                    <a href="#" onclick="showLanding()">HOME</a>
+                    <a href="#" class="active">REPORT</a>
+                    <a href="#">SEARCH</a>
+                    <a href="#" onclick="enableCompareMode()">COMPARE</a>
+                    <a href="#">BLOG</a>
+                    <a href="#">ABOUT</a>
+                    <a href="#">CONTACT</a>
+                </nav>
+            </div>
 
-            <div class="controls-group">
-                <select id="travel-mode" class="select-style" onchange="refreshIsochrone()">
-                    <option value="driving">Driving</option>
-                    <option value="walking">Walking</option>
-                </select>
-                <button class="btn-action" onclick="refreshIsochrone()">Update</button>
-                <button class="btn-outline" onclick="enableCompareMode()">Compare</button>
+            <!-- Bottom Bar (Action Bar) -->
+            <div class="header-bottom">
+                <div class="address-display">
+                    <span class="address-label">Address:</span>
+                    <span id="current-address">Perth, WA</span>
+                </div>
+
+                <div class="action-controls">
+                    <div class="header-search-container" id="geocoder-container"></div>
+                    <button class="btn-purple" onclick="refreshIsochrone()">See Surroundings</button>
+                    <button class="btn-purple" onclick="enableCompareMode()">Compare</button>
+                </div>
             </div>
         </div>
 
@@ -682,6 +881,7 @@
 
         // Marker & Isochrone State
         const marker = new mapboxgl.Marker({ color: '#6A4C93' });
+        let currentCoords = PERTH_COORDS; // Initialize with default
         let currentData = {
             pop: 15420,
             households: 5200,
@@ -696,10 +896,18 @@
         }
 
         // Navigation Logic
-        function showDashboard() {
+        function showDashboard(callback) {
+            console.log("showDashboard called");
             document.getElementById('landing-page').style.display = 'none';
             document.getElementById('dashboard-container').style.display = 'flex';
-            map.resize(); // Ensure map renders correctly after being hidden
+            setTimeout(() => {
+                console.log("Resizing map...");
+                map.resize();
+                if (callback) {
+                    console.log("Executing callback...");
+                    callback();
+                }
+            }, 100); // Increased delay slightly to ensure DOM is ready
         }
 
         function showLanding() {
@@ -709,18 +917,21 @@
 
         // Event Listeners
         geocoder.on('result', (e) => {
+            console.log("Dashboard geocoder result:", e.result);
             handleSearchResult(e);
         });
 
         heroGeocoder.on('result', (e) => {
-            showDashboard();
-            handleSearchResult(e);
-            // Sync dashboard geocoder text if possible, or just rely on map center
-            // geocoder.setInput(e.result.place_name);
+            console.log("Hero geocoder result:", e.result);
+            showDashboard(() => {
+                handleSearchResult(e);
+            });
         });
 
         function handleSearchResult(e) {
+            console.log("Handling search result...", e.result.center);
             const coords = e.result.center;
+            currentCoords = coords; // Update global state
             document.getElementById('current-address').innerText = e.result.place_name.split(',')[0];
             marker.setLngLat(coords).addTo(map);
             map.flyTo({ center: coords, zoom: 13 });
@@ -729,11 +940,15 @@
 
         function refreshIsochrone() {
             const lngLat = marker.getLngLat();
-            if (lngLat) fetchIsochrone([lngLat.lng, lngLat.lat]);
+            // Fallback to currentCoords if marker not set
+            const coords = lngLat ? [lngLat.lng, lngLat.lat] : currentCoords;
+            if (coords) fetchIsochrone(coords);
         }
 
         async function fetchIsochrone(coords) {
-            const mode = document.getElementById('travel-mode').value;
+            console.log("Fetching isochrone for:", coords);
+            const modeEl = document.getElementById('travel-mode');
+            const mode = modeEl ? modeEl.value : 'driving';
             const sliderIdx = document.getElementById('travel-time-slider').value;
             const minutes = sliderValues[sliderIdx];
 
@@ -750,12 +965,29 @@
                     map.getSource('iso').setData(data);
                 } else {
                     map.addSource('iso', { type: 'geojson', data: data });
+                    // Robustly determine where to insert the layer
+                    let beforeLayerId = 'road-label';
+                    if (!map.getLayer(beforeLayerId)) {
+                        const layers = map.getStyle().layers;
+                        // Find the first symbol layer to insert before, so isochrone is below labels
+                        const firstSymbolLayer = layers.find(layer => layer.type === 'symbol');
+                        if (firstSymbolLayer) {
+                            beforeLayerId = firstSymbolLayer.id;
+                        } else {
+                            beforeLayerId = undefined; // Add to top if no symbol layers found
+                        }
+                    }
+
                     map.addLayer({
-                        id: 'iso-layer',
-                        type: 'fill',
-                        source: 'iso',
-                        paint: { 'fill-color': '#F4A739', 'fill-opacity': 0.3 } // Orange fill like image
-                    }, 'road-label'); // Place before labels
+                        'id': 'isoLayer',
+                        'type': 'fill',
+                        'source': 'iso',
+                        'layout': {},
+                        'paint': {
+                            'fill-color': '#5a3fc0',
+                            'fill-opacity': 0.3
+                        }
+                    }, beforeLayerId); // Place before labels
                     map.addLayer({
                         id: 'iso-outline',
                         type: 'line',
@@ -773,6 +1005,7 @@
         }
 
         async function analyzeData(isochrone) {
+            console.log("Analyzing data...");
             const polygon = isochrone.features[0];
             const bbox = turf.bbox(polygon);
 
@@ -791,7 +1024,9 @@
                     const res = await fetch(url);
                     if (res.ok) {
                         const d = await res.json();
+                        console.log(`Fetched ${d.features ? d.features.length : 0} items for category ${cat}`);
                         const inside = (d.features || []).filter(f => turf.booleanPointInPolygon(f, polygon));
+                        console.log(`${inside.length} items inside polygon for ${cat}`);
                         // Add category info to feature
                         inside.forEach(f => f.properties.custom_category = cat);
                         allBiz.push(...inside);
@@ -800,6 +1035,8 @@
                     }
                 } catch (e) { console.error('Business fetch error:', e); }
             }
+
+            console.log("Total businesses found before fallback:", allBiz.length);
 
             // Fallback: Generate Mock Businesses if none found (for prototype demo)
             if (allBiz.length === 0) {
@@ -830,7 +1067,7 @@
             // Process Top 10
             // Since Mapbox Search Box results are specific POIs, we can list them directly.
             // We'll deduplicate by name just in case.
-            const uniqueBiz = Array.from(new Map(allBiz.map(item => [item.properties.name, item])).values());
+            const uniqueBiz = Array.from(new Map(allBiz.map(item => [item.properties.name || `biz-${Math.random()}`, item])).values());
             currentData.businesses = uniqueBiz; // Store all found
             console.log("Total Businesses Stored:", currentData.businesses.length);
 
@@ -1135,9 +1372,12 @@
                 });
                 addCompareGeocoder(mapB, 'B');
 
-                // Initial Fetch for defaults
-                fetchLocationData(PERTH_COORDS, mapA, 'A');
-                fetchLocationData([PERTH_COORDS[0] + 0.05, PERTH_COORDS[1]], mapB, 'B');
+                // Initial Fetch for defaults - REMOVED per user request (start empty)
+                // fetchLocationData(PERTH_COORDS, mapA, 'A');
+                // fetchLocationData([PERTH_COORDS[0] + 0.05, PERTH_COORDS[1]], mapB, 'B');
+
+                // Initialize matrix with empty state
+                renderCompareMatrix();
 
             } else {
                 mapA.resize();
@@ -1169,9 +1409,15 @@
         }
 
         async function fetchLocationData(coords, mapInstance, id) {
+            // Store coords for slider refresh
+            if (id === 'A') currentCoordsA = coords;
+            else currentCoordsB = coords;
+
             // Re-use isochrone logic but specific to this map instance
             const mode = 'driving';
-            const minutes = 10;
+            const sliderIdx = document.getElementById('compare-time-slider').value;
+            const minutes = sliderValues[sliderIdx];
+
             const url = `https://api.mapbox.com/isochrone/v1/mapbox/${mode}/${coords[0]},${coords[1]}?contours_minutes=${minutes}&polygons=true&access_token=${mapboxgl.accessToken}`;
 
             try {
@@ -1196,7 +1442,7 @@
                 mapInstance.fitBounds(bbox, { padding: 20 });
 
                 // Analyze Data
-                const result = await analyzeLocationData(data, bbox);
+                const result = await analyzeLocationData(data, bbox, coords);
                 if (id === 'A') dataA = result;
                 else dataB = result;
 
@@ -1205,7 +1451,7 @@
             } catch (e) { console.error(e); }
         }
 
-        async function analyzeLocationData(isochrone, bbox) {
+        async function analyzeLocationData(isochrone, bbox, coords) {
             const polygon = isochrone.features[0];
 
             // Mock Census (Randomized for demo difference)
@@ -1240,14 +1486,44 @@
                 }
             }
 
+            // Reverse Geocode for Address
+            let address = "Selected Location";
+            if (coords) {
+                try {
+                    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?access_token=${mapboxgl.accessToken}`;
+                    const res = await fetch(url);
+                    const d = await res.json();
+                    if (d.features && d.features.length > 0) {
+                        // Use the first result (usually most specific)
+                        // Try to find a 'locality' or 'place' or just use the first one
+                        const place = d.features.find(f => f.place_type.includes('poi')) || d.features[0];
+                        address = place.text || place.place_name.split(',')[0];
+                    }
+                } catch (e) { console.error("Reverse geocode failed", e); }
+            }
+
             return {
                 pop,
                 households,
                 medianAge,
                 businessCount: allBiz.length,
                 score,
-                address: "Selected Location" // Could reverse geocode here
+                address
             };
+        }
+
+        // Compare Mode Slider Logic
+        let currentCoordsA = null;
+        let currentCoordsB = null;
+
+        function updateCompareSliderLabel() {
+            const idx = document.getElementById('compare-time-slider').value;
+            document.getElementById('compare-slider-val').innerText = sliderValues[idx] + " min";
+        }
+
+        function refreshCompareIsochrones() {
+            if (currentCoordsA) fetchLocationData(currentCoordsA, mapA, 'A');
+            if (currentCoordsB) fetchLocationData(currentCoordsB, mapB, 'B');
         }
 
         function exitCompareMode() {
@@ -1261,9 +1537,24 @@
             matrix.innerHTML = '';
 
             if (!dataA || !dataB) {
-                matrix.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:2rem;">Loading data...</div>';
+                matrix.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:2rem; color:var(--text-light);">Select a location for both maps to compare data.</div>';
                 return;
             }
+
+            // Update Headers with Addresses
+            // We need to target the header elements. Since they are static, we can try to update them if we give them IDs or just inject a row.
+            // Let's inject a row for "Location" at the top.
+
+            const addressRow = document.createElement('div');
+            addressRow.className = 'matrix-row';
+            addressRow.style.fontWeight = 'bold';
+            addressRow.style.borderBottom = '2px solid var(--border)';
+            addressRow.innerHTML = `
+                <div class="metric-name">Location</div>
+                <div class="metric-val">${dataA.address}</div>
+                <div class="metric-val">${dataB.address}</div>
+            `;
+            matrix.appendChild(addressRow);
 
             const indicators = [
                 { id: 'pop', label: 'Population', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>', valA: dataA.pop, valB: dataB.pop, better: 'higher' },
