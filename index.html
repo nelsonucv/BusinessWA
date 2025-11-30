@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BusinessWA - Location Intelligence</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Mapbox -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+    <script
+        src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet"
+        href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css"
+        type="text/css">
+
+    <!-- Turf.js & Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #2A67B1;
+            /* Blue */
+            --secondary-color: #F4A739;
+            /* Orange */
+            --accent-color: #6A4C93;
+            /* Purple */
+            --text-dark: #333;
+            --text-light: #666;
+            --light-bg: #F2F2F2;
+            --white: #ffffff;
+            --border: #e0e0e0;
+            --font-main: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            color: var(--text-dark);
+            background-color: var(--light-bg);
+            overflow-x: hidden;
+        }
+
+        /* --- LANDING PAGE STYLES --- */
+        #landing-page {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center/cover;
+        }
+
+        #landing-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(42, 103, 177, 0.8), rgba(106, 76, 147, 0.8));
+            z-index: 1;
+        }
+
+        .landing-content {
+            position: relative;
+            z-index: 2;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .landing-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .landing-subtitle {
+            font-size: 1.2rem;
+            font-weight: 300;
+            margin-bottom: 3rem;
+            max-width: 600px;
+        }
+
+        .hero-search {
+            background: white;
+            padding: 0.5rem;
+            border-radius: 8px;
+            display: flex;
+            gap: 0.5rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-search .mapboxgl-ctrl-geocoder {
+            box-shadow: none;
+            width: 100%;
+            max-width: none;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 4rem;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: var(--primary-color);
+        }
+
+        /* --- DASHBOARD STYLES (Preserved) --- */
+        #dashboard-container {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            height: 70px;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 2rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-action {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: var(--font-main);
+            transition: background 0.2s;
+        }
+
+        .btn-action:hover {
+            background: #1e4d85;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            padding: 0.5rem 1.1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: var(--font-main);
+            transition: all 0.2s;
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Map Area */
+        #map-container {
+            position: relative;
+            width: 100%;
+            height: 45vh;
+            min-height: 350px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Slider Overlay */
+        .map-overlay-control {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            width: 280px;
+        }
+
+        .overlay-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .slider-container-overlay {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .slider-val-display {
+            font-weight: 700;
+            color: var(--primary-color);
+            min-width: 60px;
+            text-align: right;
+        }
+
+        input[type=range] {
+            flex: 1;
+            accent-color: var(--primary-color);
+        }
+
+        /* Info Bar */
+        .info-bar {
+            background: var(--white);
+            padding: 0 2rem;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tabs-row {
+            display: flex;
+            gap: 2rem;
+            height: 100%;
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            height: 100%;
+            font-weight: 600;
+            color: var(--text-light);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--primary-color);
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .stat-item {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .score-box {
+            background: var(--secondary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .score-val {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .score-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            background: var(--light-bg);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .big-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .sub-stats {
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 700;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .compare-matrix {
+            flex: 1;
+            background: var(--white);
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .matrix-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            font-weight: 700;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 1rem;
+            text-align: center;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .matrix-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+
+        .matrix-cell {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .matrix-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .matrix-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LANDING PAGE -->
+    <div id="landing-page">
+        <div class="landing-content">
+            <h1 class="landing-title">BusinessWA</h1>
+            <p class="landing-subtitle">Empowering smarter living and business decisions through location intelligence.
+            </p>
+
+            <div class="hero-search">
+                <div id="hero-geocoder-container" style="flex:1;"></div>
+                <button class="btn-action" onclick="showDashboard()">Generate</button>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <h3>Demographic</h3>
+                    <p>Population density, age distribution, and household data.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                        </svg>
+                    </div>
+                    <h3>Economic</h3>
+                    <p>Business activity, commercial zones, and retail insights.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </div>
+                    <h3>Social</h3>
+                    <p>Community assets, parks, schools, and connectivity.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPARE MODE (Initially Hidden) -->
+    <div id="compare-container">
+        <div class="compare-header">
+            <div class="logo" style="color:var(--primary-color);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                <span>Business<strong>WA</strong></span>
+            </div>
+            <button class="btn-outline" onclick="exitCompareMode()">Exit Comparison</button>
+        </div>
+
+        <div class="split-maps">
+            <div class="map-wrapper">
+                <div class="map-label">Location A</div>
+                <div id="map-a"></div>
+            </div>
+            <div class="map-wrapper">
+                <div class="map-label">Location B</div>
+                <div id="map-b"></div>
+            </div>
+        </div>
+
+        <div class="compare-matrix">
+            <div class="matrix-header">
+                <div>Location A</div>
+                <div>Indicator</div>
+                <div>Location B</div>
+            </div>
+            <div id="matrix-content">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD (Wrapped in container) -->
+    <div id="dashboard-container">
+        <!-- Search -->
+        <div class="search-section">
+            <div class="address-label">Analysis: <span id="current-address"
+                    style="color:var(--text-light); font-weight:400;">Perth, WA</span></div>
+            <div class="search-input-container" id="geocoder-container"></div>
+
+            <div class="controls-group">
+                <select id="travel-mode" class="select-style" onchange="refreshIsochrone()">
+                    <option value="driving">Driving</option>
+                    <option value="walking">Walking</option>
+                </select>
+                <button class="btn-action" onclick="refreshIsochrone()">Update</button>
+                <button class="btn-outline" onclick="enableCompareMode()">Compare</button>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div id="map-container">
+            <div id="map"></div>
+
+            <!-- Slider Overlay -->
+            <div class="map-overlay-control">
+                <div class="overlay-label">Analysis Area</div>
+                <div class="slider-container-overlay">
+                    <div class="slider-val-display" id="slider-val">10 min</div>
+                    <input type="range" id="travel-time-slider" min="0" max="3" step="1" value="3"
+                        oninput="updateSliderLabel()" onchange="refreshIsochrone()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Bar -->
+        <div class="info-bar">
+            <div class="tabs-row">
+                <div class="tab active" onclick="switchTab('population')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Demography
+                </div>
+                <div class="tab" onclick="switchTab('business')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    Commercial
+                </div>
+                <div class="tab" onclick="switchTab('social')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    Social
+                </div>
+                <div class="tab" onclick="switchTab('data')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Data
+                </div>
+            </div>
+            <div class="summary-stats">
+                <div style="display:flex; gap:2rem;">
+                    <div class="stat-item">Mode: <span class="stat-value" id="stat-mode">Driving</span></div>
+                    <div class="stat-item">Time: <span class="stat-value" id="stat-time">10 min</span></div>
+                </div>
+                <div class="score-box">
+                    <div class="score-val" id="score-val">8.3</div>
+                    <div class="score-label">Zone Score</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content-area">
+            <div class="grid-container" id="data-grid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoibmVsc29udWN2IiwiYSI6ImNtaWs3ZmtvdTEwZWEzZHM2dWpkMzMwZnMifQ.YjNxxiFjwPnX4vz-AMm1OQ';
+        // Updated default to East Victoria Park area as per user request context
+        const PERTH_COORDS = [115.903, -31.988];
+
+        // Initialize Map
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: PERTH_COORDS,
+            zoom: 13
+        });
+        map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+
+        // Dashboard Geocoder
+        const geocoder = new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            mapboxgl: mapboxgl,
+            marker: false,
+            countries: 'au',
+            placeholder: 'Search address...'
+        });
+        document.getElementById('geocoder-container').appendChild(geocoder.onAdd(map));
+
+        // Hero Geocoder (Landing Page)
+        const heroGeocoder = new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            mapboxgl: mapboxgl,
+            marker: false,
+            countries: 'au',
+            placeholder: 'Enter your address, neighborhood or place of interest',
+            flyTo: false
+        });
+        document.getElementById('hero-geocoder-container').appendChild(heroGeocoder.onAdd(map));
+
+        // Marker & Isochrone State
+        const marker = new mapboxgl.Marker({ color: '#6A4C93' });
+        let currentData = {
+            pop: 15420,
+            households: 5200,
+            businesses: []
+        };
+
+        // Slider Logic
+        const sliderValues = [3, 5, 7, 10];
+        function updateSliderLabel() {
+            const idx = document.getElementById('travel-time-slider').value;
+            document.getElementById('slider-val').innerText = sliderValues[idx] + " min";
+        }
+
+        // Navigation Logic
+        function showDashboard() {
+            document.getElementById('landing-page').style.display = 'none';
+            document.getElementById('dashboard-container').style.display = 'flex';
+            map.resize(); // Ensure map renders correctly after being hidden
+        }
+
+        function showLanding() {
+            document.getElementById('landing-page').style.display = 'flex';
+            document.getElementById('dashboard-container').style.display = 'none';
+        }
+
+        // Event Listeners
+        geocoder.on('result', (e) => {
+            handleSearchResult(e);
+        });
+
+        heroGeocoder.on('result', (e) => {
+            showDashboard();
+            handleSearchResult(e);
+            // Sync dashboard geocoder text if possible, or just rely on map center
+            // geocoder.setInput(e.result.place_name);
+        });
+
+        function handleSearchResult(e) {
+            const coords = e.result.center;
+            document.getElementById('current-address').innerText = e.result.place_name.split(',')[0];
+            marker.setLngLat(coords).addTo(map);
+            map.flyTo({ center: coords, zoom: 13 });
+            fetchIsochrone(coords);
+        }
+
+        function refreshIsochrone() {
+            const lngLat = marker.getLngLat();
+            if (lngLat) fetchIsochrone([lngLat.lng, lngLat.lat]);
+        }
+
+        async function fetchIsochrone(coords) {
+            const mode = document.getElementById('travel-mode').value;
+            const sliderIdx = document.getElementById('travel-time-slider').value;
+            const minutes = sliderValues[sliderIdx];
+
+            // Update Stats Bar
+            document.getElementById('stat-mode').innerText = mode.charAt(0).toUpperCase() + mode.slice(1);
+            document.getElementById('stat-time').innerText = minutes + " min";
+
+            const url = `https://api.mapbox.com/isochrone/v1/mapbox/${mode}/${coords[0]},${coords[1]}?contours_minutes=${minutes}&polygons=true&access_token=${mapboxgl.accessToken}`;
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (map.getSource('iso')) {
+                    map.getSource('iso').setData(data);
+                } else {
+                    map.addSource('iso', { type: 'geojson', data: data });
+                    map.addLayer({
+                        id: 'iso-layer',
+                        type: 'fill',
+                        source: 'iso',
+                        paint: { 'fill-color': '#F4A739', 'fill-opacity': 0.3 } // Orange fill like image
+                    }, 'road-label'); // Place before labels
+                    map.addLayer({
+                        id: 'iso-outline',
+                        type: 'line',
+                        source: 'iso',
+                        paint: { 'line-color': '#F4A739', 'line-width': 2 }
+                    });
+                }
+
+                const bbox = turf.bbox(data);
+                map.fitBounds(bbox, { padding: 50 });
+
+                analyzeData(data);
+
+            } catch (e) { console.error(e); }
+        }
+
+        async function analyzeData(isochrone) {
+            const polygon = isochrone.features[0];
+            const bbox = turf.bbox(polygon);
+
+            // 1. Mock Census
+            currentData.pop = Math.floor(Math.random() * 20000 + 5000);
+            currentData.households = Math.floor(currentData.pop / 2.5);
+
+            // 2. Fetch Businesses (Real Data via Mapbox)
+            // We will fetch 'commercial', 'retail_goods', 'food_and_drink'
+            const cats = ['commercial', 'retail_goods', 'food_and_drink'];
+            let allBiz = [];
+
+            for (const cat of cats) {
+                const url = `https://api.mapbox.com/search/searchbox/v1/category/${cat}?access_token=${mapboxgl.accessToken}&bbox=${bbox.join(',')}&limit=25`;
+                try {
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        const d = await res.json();
+                        const inside = (d.features || []).filter(f => turf.booleanPointInPolygon(f, polygon));
+                        // Add category info to feature
+                        inside.forEach(f => f.properties.custom_category = cat);
+                        allBiz.push(...inside);
+                    } else {
+                        console.warn('Mapbox Search API failed:', res.status);
+                    }
+                } catch (e) { console.error('Business fetch error:', e); }
+            }
+
+            // Fallback: Generate Mock Businesses if none found (for prototype demo)
+            if (allBiz.length === 0) {
+                console.log("Generating mock businesses (Fallback)...");
+                // Use bbox center to ensure points are in the view
+                const centerX = (bbox[0] + bbox[2]) / 2;
+                const centerY = (bbox[1] + bbox[3]) / 2;
+                console.log("BBox Center for Mock Data:", centerX, centerY);
+
+                for (let i = 0; i < 20; i++) {
+                    // Generate points around the center (approx +/- 0.01 deg)
+                    const lng = centerX + (Math.random() - 0.5) * 0.02;
+                    const lat = centerY + (Math.random() - 0.5) * 0.02;
+                    const pt = turf.point([lng, lat]);
+
+                    const randomCat = cats[Math.floor(Math.random() * cats.length)];
+                    pt.properties = {
+                        name: `Mock Business ${i + 1}`,
+                        address: `${Math.floor(Math.random() * 100) + 1} Mock St, Perth`,
+                        custom_category: randomCat,
+                        poi_category_ids: [randomCat]
+                    };
+                    allBiz.push(pt);
+                }
+                console.log("Generated", allBiz.length, "mock businesses.");
+            }
+
+            // Process Top 10
+            // Since Mapbox Search Box results are specific POIs, we can list them directly.
+            // We'll deduplicate by name just in case.
+            const uniqueBiz = Array.from(new Map(allBiz.map(item => [item.properties.name, item])).values());
+            currentData.businesses = uniqueBiz; // Store all found
+            console.log("Total Businesses Stored:", currentData.businesses.length);
+
+            // Update Map Source if exists
+            if (map.getSource('biz-source')) {
+                console.log("Updating biz-source with new data");
+                map.getSource('biz-source').setData({
+                    type: 'FeatureCollection',
+                    features: currentData.businesses
+                });
+            }
+
+            renderGrid();
+            if (currentTab === 'business') {
+                showBusinessLayers();
+            }
+        }
+
+        let currentTab = 'population';
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // Manage Map Layers
+            if (currentTab === 'business') {
+                showBusinessLayers();
+            } else {
+                hideBusinessLayers();
+            }
+
+            renderGrid();
+        }
+
+        function showBusinessLayers() {
+            console.log("Showing Business Layers. Count:", currentData.businesses.length);
+
+            // Add Source if not exists
+            if (!map.getSource('biz-source')) {
+                console.log("Adding biz-source");
+                map.addSource('biz-source', {
+                    type: 'geojson',
+                    data: { type: 'FeatureCollection', features: currentData.businesses }
+                });
+            } else {
+                console.log("Updating biz-source data");
+                map.getSource('biz-source').setData({
+                    type: 'FeatureCollection',
+                    features: currentData.businesses
+                });
+            }
+
+            // Add Layers if not exist
+            const layers = [
+                { id: 'biz-retail', cat: 'retail_goods', color: '#F4A739' },
+                { id: 'biz-food', cat: 'food_and_drink', color: '#1982C4' },
+                { id: 'biz-commercial', cat: 'commercial', color: '#6A4C93' }
+            ];
+
+            layers.forEach(l => {
+                if (!map.getLayer(l.id)) {
+                    console.log("Adding layer:", l.id);
+                    map.addLayer({
+                        id: l.id,
+                        type: 'circle',
+                        source: 'biz-source',
+                        filter: ['==', ['get', 'custom_category'], l.cat],
+                        paint: {
+                            'circle-color': l.color,
+                            'circle-radius': 6,
+                            'circle-stroke-width': 1,
+                            'circle-stroke-color': '#fff'
+                        },
+                        layout: { 'visibility': 'visible' }
+                    });
+
+                    // Add Click Event for Popup
+                    map.on('click', l.id, (e) => {
+                        const coordinates = e.features[0].geometry.coordinates.slice();
+                        const props = e.features[0].properties;
+                        const description = `<strong>${props.name}</strong><br>${props.address || 'No address available'}`;
+
+                        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                        }
+
+                        new mapboxgl.Popup()
+                            .setLngLat(coordinates)
+                            .setHTML(description)
+                            .addTo(map);
+                    });
+
+                    // Change cursor on hover
+                    map.on('mouseenter', l.id, () => {
+                        map.getCanvas().style.cursor = 'pointer';
+                    });
+                    map.on('mouseleave', l.id, () => {
+                        map.getCanvas().style.cursor = '';
+                    });
+
+                } else {
+                    console.log("Layer exists, ensuring visible:", l.id);
+                    map.setLayoutProperty(l.id, 'visibility', 'visible');
+                }
+            });
+        }
+
+        function hideBusinessLayers() {
+            ['biz-retail', 'biz-food', 'biz-commercial'].forEach(id => {
+                if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
+            });
+        }
+
+        function toggleLayer(cat, isChecked) {
+            const layerMap = {
+                'retail_goods': 'biz-retail',
+                'food_and_drink': 'biz-food',
+                'commercial': 'biz-commercial'
+            };
+            const layerId = layerMap[cat];
+            if (layerId && map.getLayer(layerId)) {
+                map.setLayoutProperty(layerId, 'visibility', isChecked ? 'visible' : 'none');
+            }
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('data-grid');
+            grid.innerHTML = '';
+
+            if (currentTab === 'population') {
+                // Card 1: Population
+                const card1 = document.createElement('div');
+                card1.className = 'card pop';
+                card1.innerHTML = `
+                <div class="card-title">Population</div>
+                <div class="big-number" style="color:#1982C4;">${currentData.pop.toLocaleString()}</div>
+                <div class="sub-stats">
+                    <div><strong>${currentData.households.toLocaleString()}</strong> Households</div>
+                    <div><strong>${(currentData.pop / 15).toFixed(1)}</strong> Density (p/ha)</div>
+                </div>
+            `;
+                grid.appendChild(card1);
+
+                // Card 2: Age Range (Pie Chart)
+                const card2 = document.createElement('div');
+                card2.className = 'card age';
+                card2.innerHTML = `<div class="card-title">Age Range</div><canvas id="ageChart"></canvas>`;
+                grid.appendChild(card2);
+
+                setTimeout(() => {
+                    new Chart(document.getElementById('ageChart'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['0-18', '19-65', '65+'],
+                            datasets: [{
+                                data: [20, 60, 20],
+                                backgroundColor: ['#8AC926', '#F4A739', '#1982C4']
+                            }]
+                        },
+                        options: { plugins: { legend: { position: 'right' } } }
+                    });
+                }, 0);
+
+                // Card 3: Gender
+                const card3 = document.createElement('div');
+                card3.className = 'card gender';
+                card3.innerHTML = `
+                <div class="card-title">Gender</div>
+                <div style="display:flex; justify-content:space-around; align-items:center; height:100%;">
+                    <div style="text-align:center;">
+                        <div style="font-size:2rem; color:#6A4C93;">52%</div>
+                        <div style="font-size:0.8rem; color:#777;">Female</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:2rem; color:#1982C4;">48%</div>
+                        <div style="font-size:0.8rem; color:#777;">Male</div>
+                    </div>
+                </div>
+            `;
+                grid.appendChild(card3);
+
+            } else if (currentTab === 'business') {
+                // Calculate Counts by Category
+                const counts = {
+                    'commercial': 0,
+                    'retail_goods': 0,
+                    'food_and_drink': 0
+                };
+                currentData.businesses.forEach(b => {
+                    const cat = b.properties.custom_category || 'commercial';
+                    if (counts[cat] !== undefined) counts[cat]++;
+                });
+
+                // Card 1: Total & Grouped Counts
+                const card1 = document.createElement('div');
+                card1.className = 'card business';
+                card1.innerHTML = `
+                <div class="card-title">Total Businesses</div>
+                <div class="big-number" style="color:#6A4C93;">${currentData.businesses.length}</div>
+                <div class="sub-stats" style="margin-top:1rem; gap:1rem;">
+                    
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F4A739" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                            <span>Retail: <strong>${counts['retail_goods']}</strong></span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked data-cat="retail_goods" onchange="toggleLayer('retail_goods', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1982C4" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                            <span>Food: <strong>${counts['food_and_drink']}</strong></span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked data-cat="food_and_drink" onchange="toggleLayer('food_and_drink', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6A4C93" stroke-width="2"><path d="M3 21h18"></path><path d="M5 21V7l8-4 8 4v14"></path><path d="M17 21v-8.5a1.5 1.5 0 0 0-1.5-1.5h-7a1.5 1.5 0 0 0-1.5 1.5V21"></path></svg>
+                            <span>Other: <strong>${counts['commercial']}</strong></span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked data-cat="commercial" onchange="toggleLayer('commercial', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                </div>
+            `;
+                grid.appendChild(card1);
+
+                // Card 2: Top 10 List
+                const card2 = document.createElement('div');
+                card2.className = 'card business';
+                card2.style.gridColumn = "span 2";
+
+                let listHtml = '<ul class="business-list">';
+                if (currentData.businesses.length === 0) {
+                    listHtml += '<li class="business-item">No businesses found in this area.</li>';
+                } else {
+                    currentData.businesses.slice(0, 10).forEach(biz => {
+                        // Extract category safely
+                        const cat = biz.properties.poi_category_ids ? biz.properties.poi_category_ids[0] : 'Business';
+                        listHtml += `
+                        <li class="business-item">
+                            <span class="biz-name">${biz.properties.name}</span>
+                            <span class="biz-cat">${cat}</span>
+                        </li>
+                    `;
+                    });
+                }
+                listHtml += '</ul>';
+
+                card2.innerHTML = `
+                <div class="card-title">Top 10 Businesses</div>
+                ${listHtml}
+            `;
+                grid.appendChild(card2);
+
+            } else {
+                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#777; padding:2rem;">Data for ${currentTab} available in full report.</div>`;
+            }
+        }
+
+        // Initial Render
+        updateSliderLabel();
+        showLanding();
+        renderGrid();
+
+        // COMPARE MODE LOGIC
+        let mapA, mapB;
+        let dataA = null;
+        let dataB = null;
+
+        function enableCompareMode() {
+            document.getElementById('dashboard-container').style.display = 'none';
+            document.getElementById('compare-container').style.display = 'flex';
+
+            if (!mapA) {
+                // Initialize Map A
+                mapA = new mapboxgl.Map({
+                    container: 'map-a',
+                    style: 'mapbox://styles/mapbox/streets-v12',
+                    center: PERTH_COORDS,
+                    zoom: 12
+                });
+                addCompareGeocoder(mapA, 'A');
+
+                // Initialize Map B
+                mapB = new mapboxgl.Map({
+                    container: 'map-b',
+                    style: 'mapbox://styles/mapbox/streets-v12',
+                    center: [PERTH_COORDS[0] + 0.05, PERTH_COORDS[1]],
+                    zoom: 12
+                });
+                addCompareGeocoder(mapB, 'B');
+
+                // Initial Fetch for defaults
+                fetchLocationData(PERTH_COORDS, mapA, 'A');
+                fetchLocationData([PERTH_COORDS[0] + 0.05, PERTH_COORDS[1]], mapB, 'B');
+
+            } else {
+                mapA.resize();
+                mapB.resize();
+            }
+        }
+
+        function addCompareGeocoder(mapInstance, id) {
+            const geocoder = new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken,
+                mapboxgl: mapboxgl,
+                marker: false,
+                countries: 'au',
+                placeholder: `Search Location ${id}...`,
+                flyTo: false
+            });
+            mapInstance.addControl(geocoder, 'top-left');
+
+            geocoder.on('result', (e) => {
+                const coords = e.result.center;
+                mapInstance.flyTo({ center: coords, zoom: 13 });
+                // Add marker
+                new mapboxgl.Marker({ color: id === 'A' ? '#6A4C93' : '#1982C4' })
+                    .setLngLat(coords)
+                    .addTo(mapInstance);
+
+                fetchLocationData(coords, mapInstance, id);
+            });
+        }
+
+        async function fetchLocationData(coords, mapInstance, id) {
+            // Re-use isochrone logic but specific to this map instance
+            const mode = 'driving';
+            const minutes = 10;
+            const url = `https://api.mapbox.com/isochrone/v1/mapbox/${mode}/${coords[0]},${coords[1]}?contours_minutes=${minutes}&polygons=true&access_token=${mapboxgl.accessToken}`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+
+                // Render Isochrone on specific map
+                const sourceId = `iso-${id}`;
+                if (mapInstance.getSource(sourceId)) {
+                    mapInstance.getSource(sourceId).setData(data);
+                } else {
+                    mapInstance.addSource(sourceId, { type: 'geojson', data: data });
+                    mapInstance.addLayer({
+                        id: `iso-layer-${id}`,
+                        type: 'fill',
+                        source: sourceId,
+                        paint: { 'fill-color': id === 'A' ? '#6A4C93' : '#1982C4', 'fill-opacity': 0.3 }
+                    });
+                }
+
+                const bbox = turf.bbox(data);
+                mapInstance.fitBounds(bbox, { padding: 20 });
+
+                // Analyze Data
+                const result = await analyzeLocationData(data, bbox);
+                if (id === 'A') dataA = result;
+                else dataB = result;
+
+                renderCompareMatrix();
+
+            } catch (e) { console.error(e); }
+        }
+
+        async function analyzeLocationData(isochrone, bbox) {
+            const polygon = isochrone.features[0];
+
+            // Mock Census (Randomized for demo difference)
+            const pop = Math.floor(Math.random() * 20000 + 5000);
+            const households = Math.floor(pop / 2.5);
+            const medianAge = Math.floor(Math.random() * 20 + 30); // 30-50
+            const score = (Math.random() * 3 + 6).toFixed(1); // 6.0 - 9.0
+
+            // Fetch Businesses
+            const cats = ['commercial', 'retail_goods', 'food_and_drink'];
+            let allBiz = [];
+
+            for (const cat of cats) {
+                const url = `https://api.mapbox.com/search/searchbox/v1/category/${cat}?access_token=${mapboxgl.accessToken}&bbox=${bbox.join(',')}&limit=25`;
+                try {
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        const d = await res.json();
+                        const inside = (d.features || []).filter(f => turf.booleanPointInPolygon(f, polygon));
+                        allBiz.push(...inside);
+                    }
+                } catch (e) { console.error(e); }
+            }
+
+            // Fallback Mock if empty
+            if (allBiz.length === 0) {
+                // Use bbox center
+                const centerX = (bbox[0] + bbox[2]) / 2;
+                const centerY = (bbox[1] + bbox[3]) / 2;
+                for (let i = 0; i < Math.floor(Math.random() * 50 + 20); i++) {
+                    allBiz.push({}); // Just pushing empty obj for count
+                }
+            }
+
+            return {
+                pop,
+                households,
+                medianAge,
+                businessCount: allBiz.length,
+                score,
+                address: "Selected Location" // Could reverse geocode here
+            };
+        }
+
+        function exitCompareMode() {
+            document.getElementById('compare-container').style.display = 'none';
+            document.getElementById('dashboard-container').style.display = 'flex';
+            map.resize();
+        }
+
+        function renderCompareMatrix() {
+            const matrix = document.getElementById('matrix-content');
+            matrix.innerHTML = '';
+
+            if (!dataA || !dataB) {
+                matrix.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:2rem;">Loading data...</div>';
+                return;
+            }
+
+            const indicators = [
+                { id: 'pop', label: 'Population', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>', valA: dataA.pop, valB: dataB.pop, better: 'higher' },
+                { id: 'house', label: 'Households', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>', valA: dataA.households, valB: dataB.households, better: 'higher' },
+                { id: 'age', label: 'Median Age', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>', valA: dataA.medianAge, valB: dataB.medianAge, better: 'lower' }, // Assume younger is "better" for vitality? Or neutral. Let's say neutral or context dependent. We'll mark higher for now just to show logic.
+                { id: 'biz', label: 'Businesses', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>', valA: dataA.businessCount, valB: dataB.businessCount, better: 'higher' },
+                { id: 'score', label: 'Zone Score', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>', valA: dataA.score, valB: dataB.score, better: 'higher' }
+            ];
+
+            indicators.forEach(ind => {
+                let iconA = '';
+                let iconB = '';
+
+                // Determine winner
+                // Convert to number just in case
+                const vA = parseFloat(ind.valA);
+                const vB = parseFloat(ind.valB);
+
+                if (ind.better === 'higher') {
+                    if (vA > vB) iconA = '🏆';
+                    if (vB > vA) iconB = '🏆';
+                } else if (ind.better === 'lower') {
+                    if (vA < vB) iconA = '🏆';
+                    if (vB < vA) iconB = '🏆';
+                }
+
+                const row = document.createElement('div');
+                row.className = 'matrix-row';
+                row.innerHTML = `
+                    <div class="matrix-cell" style="color:var(--primary-color); display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+                        ${ind.valA.toLocaleString()} ${iconA}
+                    </div>
+                    <div class="matrix-label">
+                        <div class="matrix-icon">${ind.icon}</div>
+                        <span>${ind.label}</span>
+                    </div>
+                    <div class="matrix-cell" style="color:var(--secondary-color); display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+                        ${iconB} ${ind.valB.toLocaleString()}
+                    </div>
+                `;
+                matrix.appendChild(row);
+            });
+        }
+    </script>
+</body>
+
+</html>
